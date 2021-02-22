@@ -1,7 +1,47 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@namespace EzFtl.Views
+@model EzFtl.Models.ViewModels.HomeViewModel
+@{
+    ViewData["Title"] = "FTL Streams";
 }
 
-<p>
-    Howdy!
-</p>
+<!-- FTL Logo -->
+<svg
+   class="ftl-logo"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   version="1.1"
+   height="32"
+   width="64"
+   viewBox="0 16 64 32">
+  <path
+       id="logo"
+       style="fill:var(--foreground-color);stroke:none"
+       d="M 7.7766466,22.836036 4.733886,41.163963 H 6.246038 L 9.2887986,22.836036 Z m 2.7031724,0 -3.0427604,18.327927 h 2.140882 L 12.620701,22.836036 Z m 3.331903,0 -3.042761,18.327927 h 2.770844 l 3.042761,-18.327927 z m 3.963094,0 -3.04276,18.326698 h 4.975706 l 1.181177,-7.158422 h 7.122743 l 0.680407,-4.008621 h -7.123973 l 0.502,-3.149805 h 7.910194 l 0.680407,-4.009849 z m 14.209803,0 -0.680407,4.009849 h 5.51216 l -2.362354,14.316849 h 4.904344 l 2.362354,-14.316848 h 5.512158 l 0.679178,-4.009849 z m 17.259946,0 -3.042759,18.326698 h 12.383899 l 0.680409,-4.008618 H 51.85669 l 2.362353,-14.31808 z" />
+</svg>
+
+<ul class="stream-list">
+    @foreach (var channel in Model.Channels.OrderByDescending(c => c.ActiveStreams.Count()))
+    {
+        <li class="@(@channel.ActiveStreams.Count() > 0 ? "live" : "offline")">
+            <a href="@(@Url.Action("Channel", new { channelId = channel.Id }))">
+                @if (channel.ActiveStreams.Any(s => s.HasPreview))
+                {
+                    <img class="preview" src="@(Url.Action("Preview",new { 
+                        streamId = channel.ActiveStreams.Where(s => s.HasPreview)
+                            .FirstOrDefault().Id
+                    }))" />
+                }
+                else
+                {
+                    <div class="preview placeholder">
+                        <span>@(@channel.ActiveStreams.Count() > 0 ? "..." : "OFFLINE")</span>
+                    </div>
+                }
+                <div class="channel-name">@channel.Name</div>
+            </a>
+        </li>
+    }
+</ul>
