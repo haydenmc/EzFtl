@@ -1,7 +1,20 @@
 @namespace EzFtl.Views
-@model EzFtl.Models.ChannelModel
+@model EzFtl.Models.ViewModels.ChannelViewModel
 @{
-    ViewData["Title"] = Model.Name;
+    ViewData["Title"] = Model.ChannelName;
 }
 
-<h1>@Model.Name</h1>
+<video 
+    autoplay
+    controls
+    class="ftl"
+    data-channel-id="@Model.ChannelId"
+    data-janus-uri="@Model.JanusUri"
+    poster="@Model.PosterImageUri">
+</video>
+<div class="channel-title">@Model.ChannelName</div>
+
+@section Scripts
+{
+    <script src="/player.js"></script>
+}

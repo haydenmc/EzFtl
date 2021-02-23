@@ -11,6 +11,7 @@ namespace EzFtl.Services
 {
     public class StreamManagerService
     {
+        private readonly TimeSpan STALE_STREAM_TIMEOUT = TimeSpan.FromSeconds(15);
         private ILogger<StreamManagerService> _logger;
         private ReaderWriterLockSlim _dataLock = new ReaderWriterLockSlim();
         private int _lastAssignedStreamId = 0;
@@ -35,6 +36,12 @@ namespace EzFtl.Services
                     _channels.Add(channelId, new Channel(channelId, key, name));
                     _logger.LogInformation("Added Channel {channelId}", channelId);
                 }
+                // TODO: For load testing. Move this into a configuration setting.
+                // for (int i = 1; i <= 100; ++i)
+                // {
+                //     _channels.Add(i, new Channel(i, "aBcDeFgHiJkLmNoPqRsTuVwXyZ123456", $"Channel {i}"));
+                //     _logger.LogInformation("Added Channel {channelId}", i);
+                // }
             }
             finally
             {
@@ -47,6 +54,7 @@ namespace EzFtl.Services
             _dataLock.EnterReadLock();
             try
             {
+                RemoveStaleStreamsWithLock();
                 return _channels.Values.Select(c => c.ToModel());
             }
             finally
@@ -140,6 +148,7 @@ namespace EzFtl.Services
                 }
                 
                 stream.Metadata = metadata;
+                stream.LastUpdateTime = DateTimeOffset.Now;
             }
             finally
             {
@@ -161,10 +170,26 @@ namespace EzFtl.Services
                 }
                 
                 stream.HasPreview = hasPreview;
+                stream.LastUpdateTime = DateTimeOffset.Now;
             }
             finally
             {
                 _dataLock.ExitWriteLock();
+            }
+        }
+
+        private void RemoveStaleStreamsWithLock()
+        {
+            foreach (var channel in _channels.Values)
+            {
+                var streamIdsToRemove = channel.Streams
+                    .Where(s => 
+                        (DateTimeOffset.Now - s.Value.LastUpdateTime) > STALE_STREAM_TIMEOUT)
+                    .Select(s => s.Key);
+                foreach (var streamId in streamIdsToRemove)
+                {
+                    channel.Streams.Remove(streamId);
+                }
             }
         }
 
@@ -199,10 +224,11 @@ namespace EzFtl.Services
         private class Stream
         {
             public int Id { get; set; }
-            public DateTimeOffset StartedDateTime { get; set; }
-                = DateTimeOffset.Now;
+            public DateTimeOffset StartedDateTime { get; set; } = DateTimeOffset.Now;
 
             public StreamMetadataBindingModel Metadata { get; set; }
+
+            public DateTimeOffset LastUpdateTime { get; set; } = DateTimeOffset.Now;
 
             public bool HasPreview { get; set; } = false;
 

@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using EzFtl.Models;
 using EzFtl.Services;
 using EzFtl.Models.ViewModels;
+using Microsoft.Extensions.Configuration;
 
 namespace EzFtl.Controllers
 {
@@ -18,10 +19,16 @@ namespace EzFtl.Controllers
 
         private readonly StreamManagerService _streamManager;
 
-        public HomeController(ILogger<HomeController> logger, StreamManagerService streamManager)
+        private string _janusUri;
+
+        public HomeController(IConfiguration configuration, ILogger<HomeController> logger,
+            StreamManagerService streamManager)
         {
             _logger = logger;
             _streamManager = streamManager;
+
+            var config = (IConfigurationRoot)configuration;
+            _janusUri = config.GetValue<string>("JanusUri", "http://localhost:8088/janus");
         }
 
         [Route("")]
@@ -39,7 +46,17 @@ namespace EzFtl.Controllers
         {
             try
             {
-                return View(_streamManager.GetChannel(channelId));
+                var channel = _streamManager.GetChannel(channelId);
+                var posterImageUri = channel.ActiveStreams.Any(s => s.HasPreview) ? 
+                    Url.Action("Preview", new { streamId = channel.Id }) : "";
+                var viewModel = new ChannelViewModel()
+                {
+                    ChannelId = channel.Id,
+                    ChannelName = channel.Name,
+                    JanusUri = _janusUri,
+                    PosterImageUri = posterImageUri,
+                };
+                return View(viewModel);
             }
             catch (ArgumentException e)
             {
