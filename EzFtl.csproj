@@ -19,7 +19,7 @@
   </Target>
 
   <Target Name="NpmRunRelease" Condition="'$(Configuration)' != 'Debug'" BeforeTargets="Build" DependsOnTargets="NpmInstall">
-    <Exec Command="npm run build" />
+    <Exec Command="npm run release" />
   </Target>
 
 </Project>
