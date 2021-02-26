@@ -23,25 +23,34 @@
 </svg>
 
 <ul class="stream-list">
-    @foreach (var channel in Model.Channels.OrderByDescending(c => c.ActiveStreams.Count()))
-    {
-        <li class="@(@channel.ActiveStreams.Count() > 0 ? "live" : "offline")">
-            <a href="@(@Url.Action("Channel", new { channelId = channel.Id }))">
-                @if (channel.ActiveStreams.Any(s => s.HasPreview))
-                {
-                    <img class="preview" src="@(Url.Action("Preview",new { 
-                        streamId = channel.ActiveStreams.Where(s => s.HasPreview)
-                            .FirstOrDefault().Id
-                    }))" />
-                }
-                else
-                {
-                    <div class="preview placeholder">
-                        <span>@(@channel.ActiveStreams.Count() > 0 ? "..." : "OFFLINE")</span>
-                    </div>
-                }
-                <div class="channel-name">@channel.Name</div>
-            </a>
-        </li>
+    @{
+        var channelListing = 0;
+        var maxAnimationOrder = 32;
+        foreach (var channel in Model.Channels.OrderByDescending(c => c.ActiveStreams.Count()))
+        {
+            bool isLive = channel.ActiveStreams.Count() > 0;
+            <li
+                class="@(isLive ? "live" : "offline")"
+                style="--animation-order: @(@Math.Min(channelListing, maxAnimationOrder));"
+                >
+                <a href="@(@Url.Action("Channel", new { channelId = channel.Id }))">
+                    @if (channel.ActiveStreams.Any(s => s.HasPreview))
+                    {
+                        <img class="preview" src="@(Url.Action("Preview",new { 
+                            streamId = channel.ActiveStreams.Where(s => s.HasPreview)
+                                .FirstOrDefault().Id
+                        }))" />
+                    }
+                    else
+                    {
+                        <div class="preview placeholder">
+                            <span>@(isLive ? "..." : "OFFLINE")</span>
+                        </div>
+                    }
+                    <div class="channel-name">@channel.Name</div>
+                </a>
+            </li>
+            channelListing++;
+        }
     }
 </ul>
