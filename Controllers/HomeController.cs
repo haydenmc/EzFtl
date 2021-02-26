@@ -48,7 +48,7 @@ namespace EzFtl.Controllers
             {
                 var channel = _streamManager.GetChannel(channelId);
                 var posterImageUri = channel.ActiveStreams.Any(s => s.HasPreview) ? 
-                    Url.Action("Preview", new { streamId = channel.Id }) : "";
+                    Url.Action("Preview", new { streamId = channel.ActiveStreams.First().Id }) : "";
                 var viewModel = new ChannelViewModel()
                 {
                     ChannelId = channel.Id,
