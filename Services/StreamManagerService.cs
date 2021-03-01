@@ -11,6 +11,10 @@ namespace EzFtl.Services
 {
     public class StreamManagerService
     {
+        // Events
+        public event EventHandler<ChannelModel> ChannelUpdated;
+
+        // Properties
         private readonly TimeSpan STALE_STREAM_TIMEOUT = TimeSpan.FromSeconds(15);
         private ILogger<StreamManagerService> _logger;
         private ReaderWriterLockSlim _dataLock = new ReaderWriterLockSlim();
@@ -98,6 +102,7 @@ namespace EzFtl.Services
 
                 int assignedStreamId = ++_lastAssignedStreamId;
                 channel.Streams.Add(assignedStreamId, new Stream(assignedStreamId));
+                OnChannelUpdated(channel.ToModel());
                 return assignedStreamId;
             }
             finally
@@ -127,6 +132,7 @@ namespace EzFtl.Services
                 }
                 
                 channel.Streams.Remove(streamId);
+                OnChannelUpdated(channel.ToModel());
             }
             finally
             {
@@ -190,6 +196,16 @@ namespace EzFtl.Services
                 {
                     channel.Streams.Remove(streamId);
                 }
+            }
+        }
+
+        private void OnChannelUpdated(ChannelModel channel)
+        {
+            EventHandler<ChannelModel> channelUpdated = ChannelUpdated;
+
+            if (channelUpdated != null)
+            {
+                channelUpdated(this, channel);
             }
         }
 
