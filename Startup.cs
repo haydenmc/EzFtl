@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Threading.Tasks;
+using EzFtl.Middleware;
 using EzFtl.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -49,6 +51,11 @@ namespace EzFtl
             }
             // Prefer using a reverse proxy such as nginx for HTTPS.
             // app.UseHttpsRedirection();
+
+            // Set up our WebSocket API
+            app.UseWebSockets();
+            app.UseMiddleware<WebSocketApiMiddleware>();
+
             app.UseStaticFiles();
 
             app.UseRouting();
