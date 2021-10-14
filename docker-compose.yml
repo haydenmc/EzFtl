@@ -1,0 +1,17 @@
+services:
+  ezftl:
+    build: .
+    image: ezftl
+    ports:
+      - "127.0.0.1:5000:5000"
+    env_file: ezftl.vars
+
+  janusftl:
+    build: https://github.com/Glimesh/janus-ftl-plugin.git
+    image: janusftl
+    ports:
+      - "8084:8084"
+      - "127.0.0.1:8088:8088"
+      - "9000-9100:9000-9100/udp"
+      - "20000-20100:20000-20100/udp"
+    env_file: janus.vars
