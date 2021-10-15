@@ -3,15 +3,17 @@ services:
     build: .
     image: ezftl
     ports:
-      - "127.0.0.1:5000:5000"
+      - "127.0.0.1:5000:5000" # EzFTL HTTP/WS server
     env_file: ezftl.vars
+    restart: unless-stopped
 
   janusftl:
     build: https://github.com/Glimesh/janus-ftl-plugin.git
     image: janusftl
     ports:
-      - "8084:8084"
-      - "127.0.0.1:8088:8088"
-      - "9000-9100:9000-9100/udp"
-      - "20000-20100:20000-20100/udp"
+      - "8084:8084" # FTL control port
+      - "127.0.0.1:8088:8088" # Janus HTTP server
+      - "9000-9100:9000-9100/udp" # FTL media ports
+      - "20000-20100:20000-20100/udp" # WebRTC media ports
     env_file: janus.vars
+    restart: unless-stopped
